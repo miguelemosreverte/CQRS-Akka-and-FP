@@ -6,5 +6,5 @@ import proof_of_concept.domain.GDP
 sealed trait CountryEvents
 
 object CountryEvents {
-  case class AddedGDP(country: String, GDP: GDP) extends Event
+  case class AddedGDP(country: String, GDP: GDP) extends CountryEvents
 }
