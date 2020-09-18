@@ -16,6 +16,51 @@ This is <strong>the oldest recording we have of such phenomena</strong>, capture
 <p>In this project, we are going to make the equivalent of a <strong>cat jump</strong>.<br>
 That is, we are going to implement an arquitecture using OOP, for then pivot to FP.</p>
 <p>Let’s hope that we land on our feet.</p>
+<h1 id="the-architecture">1 - The Architecture</h1>
+<p>This is a CQRS diagram, summarized by text:</p>
+<ol>
+<li>Data comes in</li>
+<li>We split the data into it’s most atomic expressions
+<ul>
+<li>using DomainDrivenDesign as a guide:
+<ul>
+<li>we are looking for <em>value objects</em>, and <em>entities</em></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>It is routed to processors [writeside]
+<ul>
+<li>this processors are stateful and recover from failure</li>
+<li>this processors use Event Sourcing to recover from failure</li>
+</ul>
+</li>
+<li>We react to this events to create an aggregation (ie.: the sum, the average)
+<ul>
+<li>using DomainDrivenDesign as a guide:
+<ul>
+<li>now we are looking for <em>aggregates</em></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>We store this aggregations to a query-friendly database [readside]</li>
+</ol>
+<p>Now this is the same, but as a painting.<br>
+<img src="https://i.imgur.com/WgEohXU.png" alt="enter image description here"></p>
+<p>This architecture can be implemented in many ways, no need to couple to any paradigm or framework to do so. After all, it was invented a while ago. Not in 1894 as in the photo of the jumping cat, mind you, but very<br>
+old and known in terms of CS history.</p>
+<blockquote></blockquote>
+<pre><code>CQRS was invented when performance was an issue, (still is), and to avoid system overload the entire system was split into two: The writeside, were the most transactional bussiness logic was placed, and then the conclusions, which could take their time to be computed, as it ussually did at the time. (And for some reason, as of 2020, still does).
+It is true that even though computers have gotten stronger with the passage of time, our hunger for conclusions has all but decreased. 
+Software, someone wiser once said, expands like gas to fill any container, no matter the size. And because of this principle is that we are still talking about CQRS on 2020. Because of performance.
+</code></pre>
+<p>CQRS means to not block the input of data, to let it come in without throtle. Because it will be <em>then</em> when we will aggregate it’s values to achieve a conclusion.</p>
+<p>Until then fullfill those transactions as fast as you go!<br>
+Don’t let anyone block you!</p>
+<p>That is, if I can be concise about it, my definition for CQRS.</p>
+<p>Now, let’s cut the talk and let’s talk bussiness.</p>
+<h1 id="the-bussiness">2- The Bussiness</h1>
 </div>
 </body>
 
