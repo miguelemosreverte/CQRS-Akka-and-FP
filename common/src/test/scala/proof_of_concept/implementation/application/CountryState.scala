@@ -8,9 +8,9 @@ import proof_of_concept.implementation.domain.GDP
 case class CountryState(GDP: GDP) extends State[CountryEvents, CountryState] {
   override def +(event: CountryEvents): CountryState =
     event match {
-      case AddedGDP(_, GDP) =>
+      case AddedGDP(_, gdp) =>
         copy(
-          GDP = GDP
+          GDP = gdp
         )
     }
 }
