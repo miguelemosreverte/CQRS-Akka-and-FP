@@ -6,5 +6,7 @@ import proof_of_concept.implementation.domain.GDP
 trait CountryCommands
 
 object CountryCommands {
-  case class AddGDP(country: String, GDP: GDP) extends Command
+  case class AddGDP(country: String, GDP: GDP) extends Command {
+    override def entityId: String = country
+  }
 }

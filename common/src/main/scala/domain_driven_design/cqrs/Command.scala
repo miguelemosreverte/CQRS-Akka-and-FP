@@ -1,3 +1,5 @@
 package domain_driven_design.cqrs
 
-trait Command
+import akka.entity.ShardedEntity.Sharded
+
+trait Command extends Sharded

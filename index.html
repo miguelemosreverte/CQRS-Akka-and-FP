@@ -90,7 +90,7 @@ It is a conclusion, as such it will be decoupled from the ingestion, which is th
 <h2 id="domaindrivendesign">2.1 DomainDrivenDesign</h2>
 <p>2.1.1<br>
 We can start by modeling Domain Driven Design itself!<br>
-<img src="https://i.imgur.com/LRW53wH.png" alt="enter image description here"></p>
+<img src="https://i.imgur.com/Taujpey.png" alt="enter image description here"></p>
 <p>Now that we have these useful guidelines, we can continue to make a little proof of concept on the test folder:<br>
 <img src="https://i.imgur.com/BY8CgCL.png" alt="enter image description here"></p>
 <p>2.1.2 Domain services<br>
@@ -125,11 +125,23 @@ of legs and chase you over the street.</p>
 Our application, implemented:<br>
 <img src="https://i.imgur.com/Dz7QlMG.png" alt="enter image description here"></p>
 <h2 id="actor-model">2.2 Actor Model</h2>
-<p><strong>DomainDrivenDesign</strong> and the <strong>Actor Model</strong> just click.</p>
+<p>2.2.1<br>
+<strong>DomainDrivenDesign</strong> and the <strong>Actor Model</strong> just click.</p>
 <p>See the State we did just there? Its going to become the immutable data structure that our Actor is going to be in charge of. The actor is going to constantly mutate, but it will do so responsibly, by doing one assignment.<br>
 <em>The state assignment.</em><br>
 <img src="https://i.imgur.com/zEsdbe0.png" alt="enter image description here"></p>
-<p>All we have to do now is make some tests, see them run green, and start working on the infrastructure components, such as the Kafka consumer which we are going to use.</p>
+<p>2.2.2<br>
+Now we can introduce the concept of <strong>sharding</strong>.</p>
+<p>The Actor Model is about distributed computing, and as such the actors can live on different computers but still be able to communicate among each other.</p>
+<p>The computers we call them <strong>shards</strong>, and <strong>sharding</strong> is the act of distributing actors evenly across <strong>shards</strong>, where you, the developer, can work as if they were all located on the same computer. There is no need for you to worry about networking, you can just send the message and Akka will handle the rest.</p>
+<p>2.2.3 Sharded Actors<br>
+Let’s test our luck implementing a trait called <strong>ShardedEntity</strong>, which is going to become responsible of the boilerplate that takes to create a sharded actor.</p>
+<p><img src="https://i.imgur.com/InYC5mJ.png" alt="enter image description here"><br>
+Note that we had to make a compromise:<br>
+In order to get us a sharded actor, now our messages would have an <strong>entityId</strong> and a <strong>shardId</strong>.</p>
+<p>However, again with the same <em>builder</em>, <em>boilerplate remover by inheritance</em> we did before, we can sort this out and forget about it.<br>
+<img src="https://i.imgur.com/gTV6s8o.png" alt="enter image description here"><br>
+<img src="https://i.imgur.com/ChsTTO2.png" alt="enter image description here">All we have to do now is make some tests, see them run green, and start working on the infrastructure components, such as the Kafka consumer which we are going to use.</p>
 </div>
 </body>
 

@@ -1,6 +1,8 @@
 package proof_of_concept.implementation.infrastructure
 
 import actor_model.BasePersistentActor
+import akka.actor.Props
+import akka.entity.ShardedEntity
 import proof_of_concept.implementation.application.CountryState
 import proof_of_concept.implementation.application.commands.CountryCommands
 import proof_of_concept.implementation.application.events.CountryEvents
@@ -17,4 +19,8 @@ class CountryActor extends BasePersistentActor[CountryEvents, CountryState, Coun
         sender() ! akka.Done
       }
   }
+}
+
+object CountryActor extends ShardedEntity {
+  override def props: Props = Props(new CountryActor())
 }
