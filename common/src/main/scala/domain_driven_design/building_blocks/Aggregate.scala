@@ -1,4 +1,4 @@
-package domain_driven_design
+package domain_driven_design.building_blocks
 
 trait Aggregate[F[_], ID] {
   def entities: F[Entity[ID]]

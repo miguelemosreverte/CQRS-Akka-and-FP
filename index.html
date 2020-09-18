@@ -87,17 +87,41 @@ It is a conclusion, as such it will be decoupled from the ingestion, which is th
 <p>It will be eventually consistent with the input, meaning that it may take a while to achieve full consistency with the input from writeside, but it will get there. <em>Eventually</em>.</p>
 <p>We can make a drawing out if this. Let’s see.<br>
 <img src="https://i.imgur.com/Ovcm69z.png" alt="enter image description here"></p>
-<h2 id="modeling-bussiness">2.1 Modeling bussiness</h2>
-<p>We can start by modeling Domain Driven Design itself!<br>
+<h2 id="domaindrivendesign">2.1 DomainDrivenDesign</h2>
+<p>2.1.1<br>
+We can start by modeling Domain Driven Design itself!<br>
 <img src="https://i.imgur.com/LRW53wH.png" alt="enter image description here"></p>
 <p>Now that we have these useful guidelines, we can continue to make a little proof of concept on the test folder:<br>
 <img src="https://i.imgur.com/BY8CgCL.png" alt="enter image description here"></p>
-<p>2.2 Domain services<br>
+<p>2.1.2 Domain services<br>
 We just went through with the DomainDrivenDesign building blocks, now we can use another abstraction proposed by DDD, services.</p>
 <p>Our domain would need a service that given N countries with their GDP, would rank them and take the first ten.</p>
 <p>Let’s apply some TDD.<br>
 <img src="https://i.imgur.com/CdUQihX.png" alt="enter image description here"><br>
 <img src="https://i.imgur.com/qf3n5XQ.png" alt="enter image description here"></p>
+<p>2.1.3 State, Commands, and Events<br>
+A <strong>Command</strong> comes to our system, and want to have consecuencies.<br>
+It wants to leave a fingerprint on our codebase and our database.<br>
+But <strong>Command</strong> is, in fact, a <em>suggestion</em>. We could start calling them <strong>Suggestion</strong>, because <em>what is most important about them</em> is that they can be rejected.<br>
+An <strong>Event</strong> is <strong>Command</strong> we did not reject, its consecuence.<br>
+We will persist events, make them the cornerstone of our resilience:<br>
+as with EventSourcing we can recreate the entire state of our application in case of failure. Our system crashes? No problem. Let it crash. We will recover our state, and we will do so by iterating over every event we stored.<br>
+The foundations of our model, the <strong>Event</strong>.<br>
+And a State, given an Event, will change. Simple as that.</p>
+<p>I got a small citation from a great author on this topic.<br>
+Citing Greg Young.</p>
+<blockquote>
+<p>One way commands dont exist.<br>
+Commands can be rejected, or they are valid<br>
+and become Events.<br>
+… If one way commands existed you could<br>
+extract money from an ATM, just by asking<br>
+for it. And only after the fact would the ATM<br>
+know that your bank account had no funds,<br>
+and then, what then! It would grow a pair<br>
+of legs and chase you over the street.</p>
+</blockquote>
+<p><img src="https://i.imgur.com/cBxSmOr.png" alt="enter image description here"></p>
 </div>
 </body>
 
