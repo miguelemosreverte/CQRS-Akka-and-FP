@@ -7,6 +7,7 @@ import proof_of_concept.implementation.application.CountryState
 import proof_of_concept.implementation.application.commands.CountryCommands
 import proof_of_concept.implementation.application.events.CountryEvents
 import proof_of_concept.implementation.application.queries.CountryQueries
+import proof_of_concept.implementation.application.responses.CountryResponses
 import proof_of_concept.implementation.domain.GDP
 
 class CountryActor extends BasePersistentActor[CountryEvents, CountryState] {
@@ -14,7 +15,7 @@ class CountryActor extends BasePersistentActor[CountryEvents, CountryState] {
 
   override def receiveCommand: Receive = {
     case CountryQueries.GetCountryStateGDP(country) =>
-      sender() ! this.state.GDP
+      sender() ! CountryResponses.GetCountryStateGdpResponse(state.GDP)
     case CountryCommands.AddGDP(country, gdp) =>
       val event = CountryEvents.AddedGDP(country, gdp)
       persist(event) { _ =>
