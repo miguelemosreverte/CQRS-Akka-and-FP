@@ -1,4 +1,4 @@
-package proof_of_concept.infrastructure
+package actor_model
 
 import akka.persistence.PersistentActor
 import domain_driven_design.cqrs.{Event, State}

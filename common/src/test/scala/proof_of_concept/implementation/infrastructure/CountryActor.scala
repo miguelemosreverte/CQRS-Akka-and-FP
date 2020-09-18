@@ -1,9 +1,10 @@
-package proof_of_concept.infrastructure
+package proof_of_concept.implementation.infrastructure
 
-import proof_of_concept.application.CountryState
-import proof_of_concept.application.commands.CountryCommands
-import proof_of_concept.application.events.CountryEvents
-import proof_of_concept.domain.GDP
+import actor_model.BasePersistentActor
+import proof_of_concept.implementation.application.CountryState
+import proof_of_concept.implementation.application.commands.CountryCommands
+import proof_of_concept.implementation.application.events.CountryEvents
+import proof_of_concept.implementation.domain.GDP
 
 class CountryActor extends BasePersistentActor[CountryEvents, CountryState, CountryState] {
   override var state: CountryState = CountryState(GDP = GDP(0))

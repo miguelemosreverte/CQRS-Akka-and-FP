@@ -1,7 +1,7 @@
-package proof_of_concept.application.events
+package proof_of_concept.implementation.application.events
 
 import domain_driven_design.cqrs.Event
-import proof_of_concept.domain.GDP
+import proof_of_concept.implementation.domain.GDP
 
 sealed trait CountryEvents
 

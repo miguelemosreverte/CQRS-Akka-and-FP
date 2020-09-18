@@ -1,7 +1,7 @@
-package proof_of_concept.application.commands
+package proof_of_concept.implementation.application.commands
 
 import domain_driven_design.cqrs.Command
-import proof_of_concept.domain.GDP
+import proof_of_concept.implementation.domain.GDP
 
 trait CountryCommands
 
