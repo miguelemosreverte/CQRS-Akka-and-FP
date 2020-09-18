@@ -1,4 +1,4 @@
-package proof_of_concept.domain
+package proof_of_concept.implementation.domain
 
 import domain_driven_design.building_blocks.ValueObject
 
