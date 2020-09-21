@@ -19,34 +19,11 @@ import scala.concurrent.duration.DurationInt
 
 object MessageProcessor {
 
-  case class FS2MessageProcessorRequirements(
-      consumerSettings: ConsumerSettings[IO, String, String],
-      producerSettings: TransactionalProducerSettings[IO, String, String],
-      contextShift: ContextShift[IO],
-      timer: Timer[IO]
-  )
-  object FS2MessageProcessorRequirements {
-    def create(
-        consumerSettings: ConsumerSettings[IO, String, String],
-        producerSettings: TransactionalProducerSettings[IO, String, String]
-    )(
-        implicit
-        contextShift: ContextShift[IO],
-        timer: Timer[IO]
-    ): FS2MessageProcessorRequirements =
-      FS2MessageProcessorRequirements(
-        consumerSettings,
-        producerSettings,
-        contextShift,
-        timer
-      )
-  }
-
   type MessageProcessorOutput = IO[ExitCode]
   type AlgorithmOutput = IO[(String, String)]
   type Algorithm = pub_sub.algebra.MessageProcessor.Algorithm[AlgorithmOutput]
 
-  val fs2MessageProcessor: FS2MessageProcessorRequirements => MessageProcessor[
+  val fs2MessageProcessor: MessageBrokerRequirements => MessageProcessor[
     MessageProcessorOutput,
     AlgorithmOutput
   ] =
@@ -58,7 +35,7 @@ object MessageProcessor {
             implicit val timer: Timer[IO] = transactionRequirements.timer
             val stream =
               transactionalProducerStream[IO]
-                .using(transactionRequirements.producerSettings)
+                .using(transactionRequirements.transactionalProducerSettings)
                 .flatMap { producer: TransactionalKafkaProducer[IO, String, String] =>
                   consumerStream[IO]
                     .using(transactionRequirements.consumerSettings.withGroupId(consumerGroup))

@@ -4,17 +4,18 @@ import akka.Done
 import akka.actor.ActorSystem
 import akka.stream.scaladsl.Source
 import akka.kafka.scaladsl.Producer
+
 import scala.util.{Failure, Success}
 import org.slf4j.{Logger, LoggerFactory}
+
 import scala.concurrent.{ExecutionContext, Future}
 import org.apache.kafka.clients.producer.ProducerRecord
 import pub_sub.algebra.MessageProducer.ProducedNotification
-import pub_sub.interpreter.utils.KafkaMessageBrokerRequirements
 
 object MessageProducer {
 
   val alpakkaMessageProducer
-      : KafkaMessageBrokerRequirements => pub_sub.algebra.MessageProducer.MessageProducer[Future[Done]] =
+      : MessageBrokerRequirements => pub_sub.algebra.MessageProducer.MessageProducer[Future[Done]] =
     transactionRequirements =>
       data =>
         topic =>
@@ -24,7 +25,7 @@ object MessageProducer {
 
             val publication: Future[Done] = Source(data)
               .map { m =>
-                new ProducerRecord[String, String](topic, m.aggregateRoot, m.json)
+                new ProducerRecord[String, String](topic, m.key, m.value)
               }
               .runWith(Producer.plainSink(transactionRequirements.producer))
 

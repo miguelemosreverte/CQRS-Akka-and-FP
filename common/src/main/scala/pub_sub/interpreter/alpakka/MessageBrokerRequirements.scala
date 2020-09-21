@@ -1,14 +1,15 @@
-package pub_sub.interpreter.utils
+package pub_sub.interpreter.alpakka
 
 import akka.actor.Props
 import akka.kafka.{ConsumerSettings, ProducerSettings}
 import com.typesafe.config.ConfigFactory
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.{StringDeserializer, StringSerializer}
+import pub_sub.interpreter.utils.{KafkaConfig, TopicListener}
 
 import scala.concurrent.ExecutionContext
 
-case class KafkaMessageBrokerRequirements(
+case class MessageBrokerRequirements(
     system: akka.actor.ActorSystem,
     executionContext: ExecutionContext,
     rebalancerListener: akka.actor.ActorRef,
@@ -16,7 +17,7 @@ case class KafkaMessageBrokerRequirements(
     producer: ProducerSettings[String, String]
 )
 
-object KafkaMessageBrokerRequirements {
+object MessageBrokerRequirements {
 
   private val config = ConfigFactory.load()
   private val appConfig = new KafkaConfig(config)
@@ -43,7 +44,7 @@ object KafkaMessageBrokerRequirements {
       system: akka.actor.ActorSystem,
       executionContext: ExecutionContext
   ) =
-    KafkaMessageBrokerRequirements(
+    MessageBrokerRequirements(
       system,
       executionContext,
       system.actorOf(Props(new TopicListener(topicName))),

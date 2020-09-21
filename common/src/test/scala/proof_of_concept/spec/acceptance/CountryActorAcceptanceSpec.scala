@@ -15,7 +15,7 @@ import proof_of_concept.implementation.infrastructure.consumers.AddGdpTransactio
 import proof_of_concept.spec.CountrySpec
 import pub_sub.algebra.MessageProcessor
 import pub_sub.algebra.MessageProcessor.MessageProcessor
-import pub_sub.interpreter.utils.KafkaMessageBrokerRequirements
+import pub_sub.interpreter.alpakka.MessageBrokerRequirements
 
 import scala.concurrent.{ExecutionContextExecutor, Future}
 
@@ -26,7 +26,7 @@ object CountryActorAcceptanceSpec {
     implicit val s: ActorSystem = actorSystem
     implicit val ec: ExecutionContextExecutor = actorSystem.dispatcher
 
-    val r = KafkaMessageBrokerRequirements.productionSettings(AddGdpTransaction.topic, "default")
+    val r = MessageBrokerRequirements.productionSettings(AddGdpTransaction.topic, "default")
 
     val started: UniqueKillSwitch = pub_sub.interpreter.alpakka.PubSub.PubSubAlpakka
       .messageProcessor(r)("default")(AddGdpTransaction.topic)(AddGdpTransaction processMessage (CountryActor start))

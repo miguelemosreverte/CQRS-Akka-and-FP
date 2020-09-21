@@ -5,20 +5,19 @@ import akka.actor.ActorSystem
 import pub_sub.algebra.KafkaKeyValue
 import akka.stream.scaladsl.{Keep, Sink}
 import akka.kafka.scaladsl.Transactional
+
 import scala.concurrent.{ExecutionContext, Future}
 import akka.kafka.{ProducerMessage, Subscriptions}
 import akka.stream.{KillSwitches, UniqueKillSwitch}
 import org.apache.kafka.clients.producer.ProducerRecord
 import pub_sub.algebra.MessageProcessor.MessageProcessor
-import pub_sub.interpreter.utils.KafkaMessageBrokerRequirements
 
 object MessageProcessor {
   type MessageProcessorOutput = UniqueKillSwitch
   type AlgorithmOutput = Future[Done]
   type Algorithm = pub_sub.algebra.MessageProcessor.Algorithm[AlgorithmOutput]
 
-  val alpakkaMessageProcessor
-      : KafkaMessageBrokerRequirements => MessageProcessor[MessageProcessorOutput, AlgorithmOutput] =
+  val alpakkaMessageProcessor: MessageBrokerRequirements => MessageProcessor[MessageProcessorOutput, AlgorithmOutput] =
     transactionRequirements =>
       consumerGroup =>
         topicName =>
