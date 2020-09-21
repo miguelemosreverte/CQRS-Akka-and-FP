@@ -1,0 +1,13 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: tlp-stress
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: tlp-stress
+          image: thelastpickle/tlp-stress
+          imagePullPolicy: IfNotPresent
+          args: ["run", "KeyValue", "--host", "cassandra", "--duration", "2m"]

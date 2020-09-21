@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name:  pcs-cluster
+  namespace: copernico
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: pcs-cluster
+  namespace: copernico
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "watch", "list"]
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: pcs-cluster
+  namespace: copernico
+subjects:
+- kind: ServiceAccount
+  name:  pcs-cluster
+  namespace: copernico
+roleRef:
+  kind: ClusterRole
+  name: pcs-cluster
+  apiGroup: rbac.authorization.k8s.io
