@@ -11,12 +11,13 @@ import pub_sub.algebra.{KafkaKeyValue, MessageProcessor, MessageProducer}
 
 import scala.collection.mutable
 
-class KafkaMock() extends MessageProducer with MessageProcessor {
+class KafkaMock() {
 
   object PubSub {
     sealed trait PubSubProtocol
     case class Message(topic: String, message: String) extends PubSubProtocol
-    case class SubscribeMe(topic: String, algorithm: String => Either[Throwable, Future[Done]]) extends PubSubProtocol
+    case class SubscribeMe(topic: String, algorithm: KafkaKeyValue => Either[Throwable, Future[Done]])
+        extends PubSubProtocol
   }
   import PubSub._
   var subscriptors: Set[SubscribeMe] = Set.empty
@@ -26,13 +27,13 @@ class KafkaMock() extends MessageProducer with MessageProcessor {
     case m: Message =>
       messageHistory = messageHistory :+ ((m.topic, m.message))
       subscriptors.filter(_.topic == m.topic).foreach {
-        _.algorithm(m.message)
+        _.algorithm(KafkaKeyValue(m.topic, m.message))
       }
     case s: SubscribeMe =>
       subscriptors = subscriptors + s
   }
 
-  override def produce(data: Seq[KafkaKeyValue], topic: String)(handler: ProducedNotification => Unit) = {
+  def produce(data: Seq[KafkaKeyValue], topic: String)(handler: ProducedNotification => Unit) = {
     data map { kafkaKeyValue =>
       PubSub.Message(topic, kafkaKeyValue.json)
     } foreach { receive }
@@ -40,15 +41,13 @@ class KafkaMock() extends MessageProducer with MessageProcessor {
     Future.successful(Done)
   }
 
-  override type MessageProcessorKillSwitch = UniqueKillSwitch
+  type MessageProcessorKillSwitch = UniqueKillSwitch
 
-  override val consumerGroup: String = "default"
-  override val topicName: String = "default"
-  override def run(algorithm: String => Either[Throwable, Future[Done]]): (Option[UniqueKillSwitch], Future[Done]) = {
-    (None, {
-      receive(PubSub.SubscribeMe(AddGdpTransaction.topic, algorithm))
-      Future.successful(Done)
-    })
+  val consumerGroup: String = "default"
+  val topicName: String = "default"
+  def run(algorithm: KafkaKeyValue => Either[Throwable, Future[Done]]): Unit = {
+    receive(PubSub.SubscribeMe(AddGdpTransaction.topic, algorithm))
+    ()
   }
 
 }

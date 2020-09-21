@@ -8,7 +8,7 @@ import org.apache.kafka.common.serialization.{StringDeserializer, StringSerializ
 
 import scala.concurrent.ExecutionContext
 
-case class KafkaMessageProcessorRequirements(
+case class KafkaMessageBrokerRequirements(
     system: akka.actor.ActorSystem,
     executionContext: ExecutionContext,
     rebalancerListener: akka.actor.ActorRef,
@@ -16,7 +16,7 @@ case class KafkaMessageProcessorRequirements(
     producer: ProducerSettings[String, String]
 )
 
-object KafkaMessageProcessorRequirements {
+object KafkaMessageBrokerRequirements {
 
   private val config = ConfigFactory.load()
   private val appConfig = new KafkaConfig(config)
@@ -43,7 +43,7 @@ object KafkaMessageProcessorRequirements {
       system: akka.actor.ActorSystem,
       executionContext: ExecutionContext
   ) =
-    KafkaMessageProcessorRequirements(
+    KafkaMessageBrokerRequirements(
       system,
       executionContext,
       system.actorOf(Props(new TopicListener(topicName))),

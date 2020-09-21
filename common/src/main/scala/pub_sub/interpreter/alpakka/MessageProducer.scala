@@ -2,87 +2,42 @@ package pub_sub.interpreter.alpakka
 
 import akka.Done
 import akka.actor.ActorSystem
-import akka.kafka.{ProducerMessage, Subscriptions}
-import akka.kafka.scaladsl.Transactional
-import akka.stream.{KillSwitches, UniqueKillSwitch}
-import akka.stream.scaladsl.{Keep, Sink}
-import org.apache.kafka.clients.producer.ProducerRecord
-import pub_sub.algebra.KafkaKeyValue
-import pub_sub.algebra.MessageProcessor.MessageProcessor
-import pub_sub.interpreter.utils.KafkaMessageProcessorRequirements
+import akka.stream.scaladsl.Source
+import akka.kafka.scaladsl.Producer
+import scala.util.{Failure, Success}
+import org.slf4j.{Logger, LoggerFactory}
 import scala.concurrent.{ExecutionContext, Future}
+import org.apache.kafka.clients.producer.ProducerRecord
+import pub_sub.algebra.MessageProducer.ProducedNotification
+import pub_sub.interpreter.utils.KafkaMessageBrokerRequirements
 
-object MessageProcessor {
-  type MessageProcessorOutput = UniqueKillSwitch
-  type AlgorithmOutput = Future[Done]
-  type Algorithm = pub_sub.algebra.MessageProcessor.Algorithm[AlgorithmOutput]
+object MessageProducer {
 
-  val alpakkaMessageProcessor
-      : KafkaMessageProcessorRequirements => MessageProcessor[MessageProcessorOutput, AlgorithmOutput] =
+  val alpakkaMessageProducer
+      : KafkaMessageBrokerRequirements => pub_sub.algebra.MessageProducer.MessageProducer[Future[Done]] =
     transactionRequirements =>
-      consumerGroup =>
-        topicName =>
-          algorithm => {
+      data =>
+        topic =>
+          handler => {
             implicit val system: ActorSystem = transactionRequirements.system
             implicit val ec: ExecutionContext = transactionRequirements.executionContext
-            val consumer = transactionRequirements.consumer.withGroupId(consumerGroup)
-            val producer = transactionRequirements.producer
-            val rebalancerListener = transactionRequirements.rebalancerListener
-            val subscription = Subscriptions.topics(topicName).withRebalanceListener(rebalancerListener)
 
-            val stream = Transactional
-              .source(consumer, subscription)
-              .mapAsync(100) { committable =>
-                val key = committable.record.key
-                val value = committable.record.value
-                val kafkaKeyValue = KafkaKeyValue(key, value)
-                (algorithm(kafkaKeyValue) match {
-                  case Left(value) => Future.failed(new Exception(value))
-                  case Right(value) => value
-                }).map {
-
-                    case _: Done =>
-                      val record =
-                        new ProducerRecord(
-                          topicName + "_sink",
-                          committable.record.key,
-                          committable.record.value
-                        )
-                      ProducerMessage.single(
-                        record,
-                        committable.partitionOffset
-                      )
-                  }
-                  .recoverWith {
-                    case exception: Throwable =>
-                      val record =
-                        new ProducerRecord(
-                          topicName + "_retry",
-                          committable.record.key,
-                          committable.record.value
-                        )
-                      Future.successful(
-                        ProducerMessage.single(
-                          record,
-                          committable.partitionOffset
-                        )
-                      )
-
-                  }
-
+            val publication: Future[Done] = Source(data)
+              .map { m =>
+                new ProducerRecord[String, String](topic, m.aggregateRoot, m.json)
               }
-              .via(Transactional.flow(producer, transactionalId))
-              .viaMat(KillSwitches.single)(Keep.right)
-              .collect {
-                case a: ProducerMessage.Result[_, String, _] =>
-                  a.message.record.value()
-              }
-              .toMat(Sink.ignore)(Keep.both)
+              .runWith(Producer.plainSink(transactionRequirements.producer))
 
-            val (killSwitch, done) = stream.run()
-            killSwitch
+            publication.onComplete {
+              case Success(Done) =>
+                data foreach { s =>
+                  log.debug(s"""Published $s to $topic""")
+                }
+                handler(ProducedNotification(topic, data))
+              case Failure(t) => log.error("An error has occurred: " + t.getMessage)
+            }
+            publication
           }
 
-  def transactionalId: String = java.util.UUID.randomUUID().toString
-
+  val log: Logger = LoggerFactory.getLogger(this.getClass)
 }
