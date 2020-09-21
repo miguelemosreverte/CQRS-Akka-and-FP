@@ -1,4 +1,5 @@
-package main
+class PEe()
+/*package main
 import cats.effect.{ExitCode, IO, IOApp}
 import cats.syntax.functor._
 import fs2.kafka._
@@ -58,3 +59,4 @@ object Main extends IOApp {
     stream.compile.drain.as(ExitCode.Success)
   }
 }
+ */

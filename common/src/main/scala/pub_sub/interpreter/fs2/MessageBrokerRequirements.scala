@@ -43,6 +43,8 @@ object MessageBrokerRequirements {
       TransactionalProducerSettings(
         "transactional-id",
         ProducerSettings[IO, String, String]
+          .withRetries(Int.MaxValue)
+          .withEnableIdempotence(true)
           .withBootstrapServers("localhost:9092")
       )
     MessageBrokerRequirements.create(
