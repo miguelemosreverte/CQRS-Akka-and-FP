@@ -1,15 +1,10 @@
 package pub_sub.interpreter
 
-import scala.concurrent.{ExecutionContext, Future}
 import akka.Done
-import akka.actor.ActorSystem
-import akka.stream.{OverflowStrategy, UniqueKillSwitch}
-import akka.stream.scaladsl.{Sink, Source, SourceQueue}
-import proof_of_concept.implementation.infrastructure.consumers.AddGdpTransaction
+import scala.concurrent.Future
+import akka.stream.UniqueKillSwitch
+import pub_sub.algebra.{KafkaKeyValue, KafkaKeyValueLike}
 import pub_sub.algebra.MessageProducer.ProducedNotification
-import pub_sub.algebra.{KafkaKeyValue, KafkaKeyValueLike, MessageProcessor, MessageProducer}
-
-import scala.collection.mutable
 
 class KafkaMock() {
 
@@ -45,8 +40,8 @@ class KafkaMock() {
 
   val consumerGroup: String = "default"
   val topicName: String = "default"
-  def run(algorithm: KafkaKeyValue => Either[Throwable, Future[Done]]): Unit = {
-    receive(PubSub.SubscribeMe(AddGdpTransaction.topic, algorithm))
+  def run(topic: String, algorithm: KafkaKeyValue => Either[Throwable, Future[Done]]): Unit = {
+    receive(PubSub.SubscribeMe(topic, algorithm))
     ()
   }
 

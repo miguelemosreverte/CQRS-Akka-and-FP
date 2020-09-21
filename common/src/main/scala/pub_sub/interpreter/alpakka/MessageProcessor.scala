@@ -13,6 +13,7 @@ import org.apache.kafka.clients.producer.ProducerRecord
 import pub_sub.algebra.MessageProcessor.MessageProcessor
 
 object MessageProcessor {
+
   type MessageProcessorOutput = UniqueKillSwitch
   type AlgorithmOutput = Future[Done]
   type Algorithm = pub_sub.algebra.MessageProcessor.Algorithm[AlgorithmOutput]

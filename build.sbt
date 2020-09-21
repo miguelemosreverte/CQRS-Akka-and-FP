@@ -22,9 +22,15 @@ lazy val global = project
   .enablePlugins(ScoverageSbtPlugin)
   .enablePlugins(JavaServerAppPackaging, DockerPlugin)
   .aggregate(
-    common
+    common,
+    it,
+    writeside,
+    readside
   )
 
 lazy val globalResources = file("resources")
 
-lazy val common = (project in file("./common"))
+lazy val common = project
+lazy val it = project
+lazy val writeside = project
+lazy val readside = project
