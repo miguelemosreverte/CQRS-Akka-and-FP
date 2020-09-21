@@ -51,6 +51,12 @@ object Dependencies {
       lvlDb :: lvlDbJni :: Nil
   }
 
+  object Typesafe extends Module {
+    private lazy val fs2Kafka = "com.github.fd4s" %% "fs2-kafka" % "1.0.0"
+    override def modules: Seq[ModuleID] =
+      Seq(fs2Kafka)
+  }
+
   object Akka extends Module {
     val akkaHttpVersion = "10.1.11"
     val akkaManagementVersion = "1.0.3"
@@ -149,7 +155,7 @@ object Dependencies {
 
   // Projects
   lazy val mainDeps
-      : Seq[sbt.ModuleID] = Akka.modules ++ ScalaZ.modules ++ Cassandra.modules ++ Utils.modules ++ Kamon.modules
+      : Seq[sbt.ModuleID] = Akka.modules ++ ScalaZ.modules ++ Cassandra.modules ++ Utils.modules ++ Kamon.modules ++ Typesafe.modules
   lazy val testDeps: Seq[sbt.ModuleID] = Test.modules ++ TestDB.modules
 }
 

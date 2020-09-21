@@ -7,12 +7,15 @@ import proof_of_concept.implementation.application.commands.CountryCommands
 import proof_of_concept.implementation.domain.GDP
 import proof_of_concept.implementation.infrastructure.CountryActor
 import akka.entity.AskPattern._
-import consumers_spec.no_registrales.obligacion.CountrySpec
+import akka.stream.UniqueKillSwitch
 import org.scalatest.matchers.must.Matchers.{be, convertToAnyMustWrapper}
 import org.slf4j.{Logger, LoggerFactory}
 import proof_of_concept.implementation.application.queries.CountryQueries
 import proof_of_concept.implementation.infrastructure.consumers.AddGdpTransaction
-import pub_sub.algebra.MessageProcessor
+import proof_of_concept.spec.CountrySpec
+import pub_sub.algebra.MessageProcessor.MessageProcessor
+import pub_sub.algebra.MessageProducer.MessageProducer
+import pub_sub.algebra.{KafkaKeyValue, MessageProcessor, PubSub}
 import pub_sub.interpreter.KafkaMock
 
 import scala.concurrent.Future
@@ -30,9 +33,16 @@ object CountryActorUnitTestSpec {
       algorithm = AddGdpTransaction.processMessage(actor)
     )
 
+    val a: MessageProcessor[Unit, Future[Done]] =
+      topic => consumerGroup => { kafkaMock.run _ }
+    val b: MessageProducer[Future[Done]] = data =>
+      topic =>
+        handler => {
+          kafkaMock.produce(data, topic)(handler)
+        }
     CountrySpec.TestContext(
-      messageProcessor = kafkaMock,
-      messageProducer = kafkaMock
+      messageProcessor = a,
+      messageProducer = b
     )
   }
 

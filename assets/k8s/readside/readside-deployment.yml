@@ -1,0 +1,134 @@
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: readside-api
+  namespace: copernico
+  labels:
+    app: readside-cluster
+spec:
+  type: LoadBalancer
+  selector:
+    app: readside-cluster
+  ports:
+    - protocol: TCP
+      port: 8082
+      targetPort: 8082
+      name: api
+    - protocol: TCP
+      port: 9095
+      targetPort: 9095
+      name: monitoring
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: readside
+  namespace: copernico
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: readside-cluster
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: readside-cluster
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: index
+                    operator: In
+                    values:
+                      - "1"
+                      - "2"
+      terminationGracePeriodSeconds: 30
+      restartPolicy: Always
+      serviceAccountName: readside-cluster
+      containers:
+        - image: readside/readside:1.0
+          imagePullPolicy: Never
+          name: readside-cluster
+          env:
+            - name: REQUIRED_CONTACT_POINTS
+              value: "3"
+            - name: KAFKA_BROKERS_LIST
+              value: "kafka-internal:29092"
+            - name: CASSANDRA_CONTACT_POINTS
+              value: "cassandra:9043"
+            - name: DISCOVERY_METHOD
+              value: "kubernetes-api"
+            - name: MANAGEMENT_PORT
+              value: "8559"
+            - name: CLUSTER_IP
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: status.podIP
+            - name: CLUSTER_PORT
+              value: "2554"
+            - name: HTTP_PORT
+              value: "8082"
+            - name: POD_APP_NAME
+              value: "app=readside-cluster"
+            - name: POD_NAMESPACE
+              value: "copernico"
+            - name: SERVICE_NAME
+              value: "application-dns-internal"
+          ports:
+            - name: remoting
+              containerPort: 2554
+            - name: api
+              containerPort: 8082
+            - name: management
+              containerPort: 8559
+            - name: monitoring
+              containerPort: 9095
+          #health
+          readinessProbe:
+            httpGet:
+              path: /api/system/ready
+              port: 8082
+              scheme: HTTP
+            successThreshold: 1
+            periodSeconds: 10
+            initialDelaySeconds: 30
+            failureThreshold: 3
+          #health
+          livenessProbe:
+            httpGet:
+              path: /api/system/status
+              port: 8082
+              scheme: HTTP
+            successThreshold: 1
+            periodSeconds: 30
+            initialDelaySeconds: 10
+            failureThreshold: 4
+          # stop
+          lifecycle:
+            preStop:
+              exec:
+                command:  ["/bin/sh", "-c", " while curl -X POST http://localhost:8082/api/system/shutdown; do sleep 10; done"]
+          # resources:
+          #   # We usually recommend not define cpu limit
+          #   limits:
+          #     memory: 4096Mi
+          #   requests:
+          #     cpu: 2000m
+          #     memory: 4096Mi
+          # rollingUpdate:
+          #   # specifies the maximum number of Pods that can be unavailable during the update process.The value can be an absolute number (for example, 5) or a percentage of desired Pods (for example, 10%)
+          #   maxUnavailable: 25%
+          #   # specifies the maximum number of Pods that can be created over the desired number of Pods. The value can be an absolute number (for example, 5) or a percentage of desired Pods (for example, 10%)
+          #   maxSurge: 25%
