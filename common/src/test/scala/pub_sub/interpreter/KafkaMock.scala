@@ -7,7 +7,7 @@ import akka.stream.{OverflowStrategy, UniqueKillSwitch}
 import akka.stream.scaladsl.{Sink, Source, SourceQueue}
 import proof_of_concept.implementation.infrastructure.consumers.AddGdpTransaction
 import pub_sub.algebra.MessageProducer.ProducedNotification
-import pub_sub.algebra.{KafkaKeyValue, MessageProcessor, MessageProducer}
+import pub_sub.algebra.{KafkaKeyValue, KafkaKeyValueLike, MessageProcessor, MessageProducer}
 
 import scala.collection.mutable
 
@@ -33,9 +33,9 @@ class KafkaMock() {
       subscriptors = subscriptors + s
   }
 
-  def produce(data: Seq[KafkaKeyValue], topic: String)(handler: ProducedNotification => Unit) = {
+  def produce(data: Seq[KafkaKeyValueLike], topic: String)(handler: ProducedNotification => Unit) = {
     data map { kafkaKeyValue =>
-      PubSub.Message(topic, kafkaKeyValue.json)
+      PubSub.Message(topic, kafkaKeyValue.value)
     } foreach { receive }
     handler(ProducedNotification(topic, data))
     Future.successful(Done)

@@ -14,7 +14,7 @@ import proof_of_concept.implementation.domain.GDP
 import pub_sub.algebra.MessageProducer.{MessageProducer, ProducedNotification}
 import akka.entity.AskPattern._
 import pub_sub.algebra.MessageProcessor.MessageProcessor
-import pub_sub.interpreter.utils.KafkaMessageBrokerRequirements
+import pub_sub.interpreter.alpakka.MessageBrokerRequirements
 
 import scala.concurrent.Future
 
