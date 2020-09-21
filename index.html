@@ -124,24 +124,41 @@ of legs and chase you over the street.</p>
 <p><img src="https://i.imgur.com/bNk70su.png" alt="enter image description here"><br>
 Our application, implemented:<br>
 <img src="https://i.imgur.com/Dz7QlMG.png" alt="enter image description here"></p>
-<h2 id="actor-model">2.2 Actor Model</h2>
-<p>2.2.1<br>
+<h1 id="infrastructure">3. Infrastructure:</h1>
+<h2 id="actor-model">3.1 Actor Model</h2>
+<p>3.1.1<br>
 <strong>DomainDrivenDesign</strong> and the <strong>Actor Model</strong> just click.</p>
 <p>See the State we did just there? Its going to become the immutable data structure that our Actor is going to be in charge of. The actor is going to constantly mutate, but it will do so responsibly, by doing one assignment.<br>
 <em>The state assignment.</em><br>
 <img src="https://i.imgur.com/KSoi06X.png" alt="enter image description here"></p>
-<p>2.2.2<br>
+<p>3.1.2<br>
 Now we can introduce the concept of <strong>sharding</strong>.</p>
 <p>The Actor Model is about distributed computing, and as such the actors can live on different computers but still be able to communicate among each other.</p>
 <p>The computers we call them <strong>shards</strong>, and <strong>sharding</strong> is the act of distributing actors evenly across <strong>shards</strong>, where you, the developer, can work as if they were all located on the same computer. There is no need for you to worry about networking, you can just send the message and Akka will handle the rest.</p>
-<p>2.2.3 Sharded Actors<br>
+<p>3.1.3 Sharded Actors<br>
 Let’s test our luck implementing a trait called <strong>ShardedEntity</strong>, which is going to become responsible of the boilerplate that takes to create a sharded actor.</p>
 <p><img src="https://i.imgur.com/InYC5mJ.png" alt="enter image description here"><br>
 Note that we had to make a compromise:<br>
 In order to get us a sharded actor, now our messages would have an <strong>entityId</strong> and a <strong>shardId</strong>.</p>
 <p>However, again with the same <em>builder</em>, <em>boilerplate remover by inheritance</em> we did before, we can sort this out and forget about it.<br>
 <img src="https://i.imgur.com/gTV6s8o.png" alt="enter image description here"><br>
-<img src="https://i.imgur.com/ChsTTO2.png" alt="enter image description here">All we have to do now is make some tests, see them run green, and start working on the infrastructure components, such as the Kafka consumer which we are going to use.</p>
+<img src="https://i.imgur.com/ChsTTO2.png" alt="enter image description here"><br>
+All we have to do now is make some tests, see them run green, and start working on the infrastructure components, such as the Kafka consumer which we are going to use.</p>
+<h2 id="pubsub">3.2 PubSub</h2>
+<p>Okay, now we can venture into one of the last key pieces of an Akka project, the communication layer against the outside world.</p>
+<p>Kafka Transactions provide <strong>exactly-once-delivery</strong> guarantees, which means that not only is Kafka going to try over and over again to send us the messages if the fail to answer, but also there is the guarantee that we are not going to receive the same message twice.</p>
+<p>3.2.1 The algebra<br>
+So we are going to start by making a few reasonable abstractions, such as <strong>MessageProducer</strong> and <strong>MessageProcessor</strong>, which we are going to implement in both Production and Mock environments.</p>
+<p>The idea is to avoid giving <em>too much</em> responsability for what should be a simple infrastructure module.<br>
+Thus, we are going to opt for delegating serialization/deserialization to the final user, and offer to publish and read the messages as they come and go over the network. And while it is true that over the network the messages are just array of bytes, there is something familiar about Strings that does not add overhead but makes our code look a little more practical to use. To, we are not going to go overboard either with the delegation of responsability, we are going to offer an ergonomic String based pub sub.</p>
+<p>3.2.2 The interpreter<br>
+For production, we are going to use Kafka Transactions, as mentioned.<br>
+We are going to take care, however, when publishing, that the messages are partitioned in just the right way so that there is a 1 to 1 relationship between the Kafka partitions and the Akka shardings.<br>
+This means that if we do everything right, every message will land right were the sharded actor is waiting for it. Right on the same physical node.</p>
+<p>We do this by literally sharing the hashing function between Kafka and Akka, for partitioning and sharding, respectively.</p>
+<p>I am going to make a diagram to explain the situation we are solving:<br>
+<img src="https://i.imgur.com/AzTuTnM.png" alt="enter image description here"><br>
+<img src="https://i.imgur.com/kX9BnmZ.png" alt="enter image description here"></p>
 </div>
 </body>
 
