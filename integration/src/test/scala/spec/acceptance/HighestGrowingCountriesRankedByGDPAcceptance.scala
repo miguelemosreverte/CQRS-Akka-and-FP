@@ -1,23 +1,24 @@
-package country_yearly_population_delta.acceptance
+package spec.acceptance
 
-import org.scalatest.Ignore
 import akka.actor.ActorSystem
 import akka.stream.UniqueKillSwitch
-import country_yearly_population_delta.CountrySpec
 import country_yearly_population_delta.infrastructure.CountryActor
-
-import scala.concurrent.ExecutionContextExecutor
 import pub_sub.interpreter.alpakka.MessageBrokerRequirements
+import spec.HighestGrowingCountriesRankedByGDPSpec
+import spec.HighestGrowingCountriesRankedByGDPSpec.TestContext
 import country_yearly_population_delta.infrastructure.consumers.AddYearlyPopulationGrowthTransaction
 
-object CountryActorAcceptanceSpec {
+import scala.concurrent.ExecutionContextExecutor
 
-  def getContext(actorSystem: ActorSystem): CountrySpec.TestContext = {
+object HighestGrowingCountriesRankedByGDPAcceptance {
+
+  def getContext(actorSystem: ActorSystem): TestContext = {
     // localImplicit @deprecated | in Scala 3 we will be able to send first order functions with implicit parameters
     implicit val s: ActorSystem = actorSystem
     implicit val ec: ExecutionContextExecutor = actorSystem.dispatcher
 
     val r = MessageBrokerRequirements.productionSettings(AddYearlyPopulationGrowthTransaction.topic, "default")
+
     val messageProducer = pub_sub.interpreter.alpakka.MessageProducer.alpakkaMessageProducer(r)
     val actor = CountryActor.start(messageProducer)
     val started: UniqueKillSwitch = pub_sub.interpreter.alpakka.PubSub.PubSubAlpakka
@@ -25,16 +26,12 @@ object CountryActorAcceptanceSpec {
         AddYearlyPopulationGrowthTransaction processMessage actor
       )
 
-    CountrySpec.TestContext(
+    TestContext(
       messageProcessor = pub_sub.interpreter.alpakka.PubSub.PubSubAlpakka.messageProcessor(r),
       messageProducer = pub_sub.interpreter.alpakka.PubSub.PubSubAlpakka.messageProducer(r)
     )
   }
 
 }
-
-@Ignore
-class CountryActorAcceptanceSpec
-    extends CountrySpec(
-      CountryActorAcceptanceSpec getContext
-    )
+class HighestGrowingCountriesRankedByGDPAcceptance
+    extends HighestGrowingCountriesRankedByGDPSpec(HighestGrowingCountriesRankedByGDPAcceptance getContext)

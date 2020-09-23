@@ -23,12 +23,12 @@ object MessageProcessor {
       consumerGroup =>
         topicName =>
           algorithm => {
-            implicit val system: ActorSystem = transactionRequirements.system
-            implicit val ec: ExecutionContext = transactionRequirements.executionContext
-            val consumer = transactionRequirements.consumer.withGroupId(consumerGroup)
-            val producer = transactionRequirements.producer
-            val rebalancerListener = transactionRequirements.rebalancerListener
-            val subscription = Subscriptions.topics(topicName).withRebalanceListener(rebalancerListener)
+            implicit lazy val system: ActorSystem = transactionRequirements.system
+            implicit lazy val ec: ExecutionContext = transactionRequirements.executionContext
+            lazy val consumer = transactionRequirements.consumer.withGroupId(consumerGroup)
+            lazy val producer = transactionRequirements.producer
+            lazy val rebalancerListener = transactionRequirements.rebalancerListener
+            lazy val subscription = Subscriptions.topics(topicName).withRebalanceListener(rebalancerListener)
 
             val stream = Transactional
               .source(consumer, subscription)

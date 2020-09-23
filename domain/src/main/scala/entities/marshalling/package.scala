@@ -6,8 +6,6 @@ import play.api.libs.json.Json
 package object marshalling {
 
   implicit val CountryGrossDomesticProductGlobalRankingF = Json.format[CountryGrossDomesticProductGlobalRanking]
-  implicit val CountryYearlyTotalPopulationF = Json.format[CountryYearlyTotalPopulation]
-
   implicit def CountryGrossDomesticProductGlobalRankingKafkaValue(
       countryGrossDomesticProductGlobalRanking: CountryGrossDomesticProductGlobalRanking
   ): KafkaKeyValue =
@@ -15,4 +13,23 @@ package object marshalling {
       key = countryGrossDomesticProductGlobalRanking.country,
       value = serialization.encode(countryGrossDomesticProductGlobalRanking)
     )
+
+  implicit val CountryYearlyPopulationDeltaF = Json.format[CountryYearlyPopulationDelta]
+  implicit def CountryYearlyPopulationDeltaKafkaValue(
+      countryYearlyPopulationDelta: CountryYearlyPopulationDelta
+  ): KafkaKeyValue =
+    KafkaKeyValue(
+      key = countryYearlyPopulationDelta.country,
+      value = serialization.encode(countryYearlyPopulationDelta)
+    )
+
+  implicit val CountryYearlyTotalPopulationF = Json.format[CountryYearlyTotalPopulation]
+  implicit def CountryYearlyTotalPopulationKafkaValue(
+      countryYearlyTotalPopulation: CountryYearlyTotalPopulation
+  ): KafkaKeyValue =
+    KafkaKeyValue(
+      key = countryYearlyTotalPopulation.country,
+      value = serialization.encode(countryYearlyTotalPopulation)
+    )
+
 }

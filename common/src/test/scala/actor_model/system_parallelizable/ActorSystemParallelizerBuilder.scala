@@ -9,5 +9,5 @@ object ActorSystemParallelizerBuilder {
   private val availablePort: Int = AvailablePortProvider.port
   private val system = Generators.actorSystem(availablePort, "ActorSystemParallelizerBuilder")
   lazy val actor: ActorRef =
-    system.actorOf(Props(new ActorSystemGenerator), s"acceptance-test-actor")
+    system.actorOf(Props(new ActorSystemGenerator), s"spec.acceptance-test-actor")
 }

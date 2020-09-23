@@ -1,4 +1,4 @@
-package country_yearly_population_delta
+package use_cases.highest_growing_countries_ranked_by_gdp.stage_1
 
 import akka.actor.ActorSystem
 import akka.http.AkkaHttpClient
@@ -6,6 +6,8 @@ import akka.http.scaladsl.model.HttpResponse
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import cats.effect.{ExitCode, IO, IOApp}
 import country_yearly_population_delta.application.commands.CountryCommands.AddYearlyCountryPopulation
+import entities.CountryYearlyTotalPopulation
+import org.slf4j.LoggerFactory
 import play.api.libs.json._
 import pub_sub.algebra.KafkaKeyValueLike.KafkaKeyValue
 import pub_sub.algebra.MessageProducer.ProducedNotification
@@ -17,19 +19,9 @@ import scala.util.Try
 
 object PopulationGet extends IOApp {
 
-  case class Country(countryiso3code: String, year: String, value: Long) {
+  case class CountryWithNullablePopulation(countryiso3code: Option[String], date: Option[String], value: Option[Double])
+  case class Country(countryiso3code: String, year: String, value: Int)
 
-    override def toString: String =
-      s"""
-         |
-         |country: ${countryiso3code}
-         |year: ${year}
-         |value: ${value}
-         |
-         |""".stripMargin
-  }
-
-  case class CountryWithNullablePopulation(countryiso3code: String, year: String, value: Option[Long])
   implicit val CountryF = Json.format[Country]
   implicit val CountryReadsF = Reads.seq(Json.reads[Country])
   implicit val CountryWithNullablePopulationF = Json.format[CountryWithNullablePopulation]
@@ -38,6 +30,7 @@ object PopulationGet extends IOApp {
   implicit val actorSystem = ActorSystem("ActorSystem")
   implicit val ec = actorSystem.dispatcher
   val httpClient = new AkkaHttpClient()
+  val log = LoggerFactory.getLogger(this.getClass)
 
   override def run(args: List[String]): IO[ExitCode] = {
     val populationFuture = for {
@@ -46,49 +39,56 @@ object PopulationGet extends IOApp {
       )
       text: String <- Unmarshal(response.entity).to[String]
     } yield {
-
       val json: JsValue = Json.parse(text)
       val transform: JsLookupResult = json.\(1)
-
-      val result: Either[Throwable, Seq[CountryWithNullablePopulation]] = transform match {
+      val result = transform match {
         case JsDefined(value: JsValue) =>
-          serialization.decode[Seq[CountryWithNullablePopulation]](value.toString)
+          serialization.decode[Seq[CountryWithNullablePopulation]](value.toString())
         case _: JsUndefined =>
           Left(new ArrayIndexOutOfBoundsException("DataBank did not provide the data correctly."))
       }
       result.map { result: Seq[CountryWithNullablePopulation] =>
         result.flatMap { result =>
           Try {
-            Country(result.countryiso3code, result.year, result.value.get)
-          }.toOption
+            Country(result.countryiso3code.get, result.date.get, result.value.get.toInt)
+          }.toOption // throwing away all events that do not suffice the requirements #cleanup-stage
         }
 
       } match {
         case Right(v) => v
-        case Left(value) => Seq[Country]()
+        case Left(value) =>
+          log.error(value.getMessage)
+          Seq[Country]()
       }
-
     }
-    val population = Await.result(populationFuture, 20.seconds)
 
-    println("---")
-    println(population.head)
+    // NOT PRODUCTION CODE, thus we are safe using blocking calls
+    val population = Await.result(populationFuture, 60.seconds)
 
-    import country_yearly_population_delta.infrastructure.marshalling._
-    val messages = population.map { countryGDP =>
-      KafkaKeyValue(
-        countryGDP.countryiso3code,
-        serialization.encode(
-          AddYearlyCountryPopulation(countryGDP.countryiso3code, countryGDP.year.toInt, countryGDP.value)
-        )
-      )
-    }
+    import entities.marshalling._
 
     pub_sub.interpreter.fs2.MessageProducer
       .fs2MessageProducer(MessageBrokerRequirements.productionSettings)(
         ProducedNotification.print(ProducedNotification.producedNotificationStandardPrintFormat)
       )(
-        "AddYearlyPopulationGrowthTransaction"
-      )(messages)
+        CountryYearlyTotalPopulation.name
+      )(
+        population
+          .map { toDomain =>
+            CountryYearlyTotalPopulation(
+              toDomain.countryiso3code,
+              toDomain.year.toInt,
+              toDomain.value
+            )
+          }
+          .map { countryPopulation =>
+            KafkaKeyValue(
+              key = countryPopulation.country,
+              value = serialization.encode(
+                countryPopulation
+              )
+            )
+          }
+      )
   }
 }

@@ -8,6 +8,7 @@ import country_yearly_population_delta.application.events.CountryEvents
 import country_yearly_population_delta.application.queries.CountryQueries
 import country_yearly_population_delta.application.responses.CountryResponses
 import country_yearly_population_delta.domain.CountryState
+import entities.CountryYearlyPopulationDelta
 import pub_sub.algebra.KafkaKeyValueLike.KafkaKeyValue
 import pub_sub.algebra.MessageProducer
 import pub_sub.algebra.MessageProducer.MessageProducer
@@ -16,8 +17,6 @@ import pub_sub.interpreter.alpakka.MessageBrokerRequirements
 class CountryActor(messageProducer: MessageProducer[_]) extends BasePersistentActor[CountryEvents, CountryState] {
   override var state: CountryState = CountryState()
 
-  def AveragePopulationGrowthResponse: Long =
-    0
   override def receiveCommand: Receive = {
     case CountryQueries.GetCountryAveragePopulationGrowth(country) =>
       sender() ! CountryResponses.GetCountryAveragePopulationGrowthResponse(state.averagePopulationGrowth)
@@ -27,10 +26,21 @@ class CountryActor(messageProducer: MessageProducer[_]) extends BasePersistentAc
         state += event
         sender() ! akka.Done
 
+        import entities.marshalling._
         state.populationGrowthByYear.get(year).map { populationGrowth: Long =>
-          messageProducer(MessageProducer.ProducedNotification.Defaults.defaultPrint)("topic")(
+          messageProducer(MessageProducer.ProducedNotification.Defaults.defaultPrint)(
+            CountryYearlyPopulationDelta.name
+          )(
             Seq(
-              KafkaKeyValue("", "")
+              KafkaKeyValue(key = country,
+                            value = serialization.encode(
+                              CountryYearlyPopulationDelta(
+                                country,
+                                year,
+                                populationGrowth
+                              )
+                            )
+              )
             )
           )
         }

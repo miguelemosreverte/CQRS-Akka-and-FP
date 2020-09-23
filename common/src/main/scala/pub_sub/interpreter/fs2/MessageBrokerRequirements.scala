@@ -13,8 +13,7 @@ object MessageBrokerRequirements {
   def create(
       consumerSettings: ConsumerSettings[IO, String, String],
       producerSettings: TransactionalProducerSettings[IO, String, String]
-  )(
-      implicit
+  )(implicit
       contextShift: ContextShift[IO],
       timer: Timer[IO]
   ): MessageBrokerRequirements =
@@ -25,8 +24,7 @@ object MessageBrokerRequirements {
       timer
     )
 
-  def productionSettings(
-      implicit
+  def productionSettings(implicit
       contextShift: ContextShift[IO],
       timer: Timer[IO]
   ): MessageBrokerRequirements = {
@@ -36,8 +34,8 @@ object MessageBrokerRequirements {
         keyDeserializer = Deserializer[IO, String],
         valueDeserializer = Deserializer[IO, String]
       ).withAutoOffsetReset(AutoOffsetReset.Earliest)
-        .withBootstrapServers("localhost:9092")
-        .withGroupId("group")
+        .withBootstrapServers("0.0.0.0:9092")
+        .withGroupId("default")
 
     val producerSettings =
       TransactionalProducerSettings(
@@ -45,7 +43,7 @@ object MessageBrokerRequirements {
         ProducerSettings[IO, String, String]
           .withRetries(Int.MaxValue)
           .withEnableIdempotence(true)
-          .withBootstrapServers("localhost:9092")
+          .withBootstrapServers("0.0.0.0:9092")
       )
     MessageBrokerRequirements.create(
       consumerSettings,

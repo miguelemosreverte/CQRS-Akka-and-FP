@@ -29,8 +29,12 @@ object MessageProducer {
               messageStream =>
                 messageStream through { stream =>
                   stream
-                    .map(keyValue => ProducerRecords.one(ProducerRecord(topic, keyValue.key, keyValue.value)))
+                    .map { keyValue =>
+                      handler(ProducedNotification(topic, Seq(keyValue)))
+                      ProducerRecords.one(ProducerRecord(topic, keyValue.key, keyValue.value))
+                    }
                     .through(produce(producerSettings))
+
                 }
 
             (stream through publishMessages).compile.drain.as(ExitCode.Success)

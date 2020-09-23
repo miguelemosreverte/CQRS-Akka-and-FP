@@ -7,15 +7,24 @@ import country_yearly_population_delta.application.commands.CountryCommands.AddY
 import scala.concurrent.Future
 import country_yearly_population_delta.infrastructure.marshalling._
 import akka.entity.AskPattern._
+import entities.CountryYearlyTotalPopulation
 import pub_sub.algebra.KafkaKeyValueLike.KafkaKeyValue
+import entities.marshalling._
+
 object AddYearlyPopulationGrowthTransaction {
-  val topic = "AddYearlyPopulationGrowthTransaction"
+  val topic = CountryYearlyTotalPopulation.name
 
   def processMessage(actorRef: ActorRef)(input: KafkaKeyValue): Either[Throwable, Future[Done]] = {
     serialization
-      .decode[AddYearlyCountryPopulation](input.json)
+      .decode[CountryYearlyTotalPopulation](input.json)
       .map { serialized =>
-        actorRef.ask[akka.Done](serialized)
+        actorRef.ask[akka.Done](
+          AddYearlyCountryPopulation(
+            serialized.country,
+            serialized.year,
+            serialized.totalPopulation
+          )
+        )
       }
   }
 

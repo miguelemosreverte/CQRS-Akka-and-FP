@@ -1,6 +1,5 @@
 package country_yearly_population_delta.application.commands
 
-import country_gdp_ranking.domain.GDP
 import domain_driven_design.cqrs.Command
 
 trait CountryCommands

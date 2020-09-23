@@ -1,16 +1,16 @@
+package use_cases.highest_growing_countries_ranked_by_gdp.stage_1
+
 import akka.actor.ActorSystem
 import akka.http.AkkaHttpClient
 import akka.http.scaladsl.model.HttpResponse
-
-import scala.concurrent.{Await, Future}
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import cats.effect.{ExitCode, IO, IOApp}
-import country_gdp_ranking.application.commands.CountryCommands.AddGDP
-import country_gdp_ranking.domain.GDP
+import entities.CountryGrossDomesticProductGlobalRanking
 import pub_sub.algebra.KafkaKeyValueLike.KafkaKeyValue
 import pub_sub.algebra.MessageProducer.ProducedNotification
 import pub_sub.interpreter.fs2.MessageBrokerRequirements
 
+import scala.concurrent.Await
 import scala.concurrent.duration.DurationInt
 import scala.util.Try
 
@@ -63,7 +63,6 @@ object GdpGet extends IOApp {
       response: HttpResponse <- httpClient.get("https://databank.worldbank.org/data/download/GDP_PPP.csv")
       body: String <- Unmarshal(response.entity).to[String]
     } yield {
-
       body
         // The file is a little free with it's use of CSV, so I'll just get the lines,
         .split("\n")
@@ -90,22 +89,27 @@ object GdpGet extends IOApp {
 
     val countryGdps = Await.result(countryGdpsFuture, 20.seconds)
 
-    import country_gdp_ranking.infrastructure.marshalling._
-    val messages = countryGdps.map { countryGDP =>
-      KafkaKeyValue(
-        countryGDP.countryCode,
-        serialization.encode(AddGDP(countryGDP.countryCode, GDP(countryGDP.ranking.toInt)))
-      )
-    }
+    import entities.marshalling._
+    val messages = countryGdps
+      .map { toDomain =>
+        CountryGrossDomesticProductGlobalRanking(
+          toDomain.countryCode,
+          toDomain.ranking.toInt
+        )
+      }
+      .map { countryGDP =>
+        KafkaKeyValue(
+          countryGDP.country,
+          serialization.encode(countryGDP)
+        )
+      }
 
-    println("\n" * 5)
-    countryGdps.foreach(println)
-    println(countryGdps.length)
+    messages foreach println
 
     pub_sub.interpreter.fs2.MessageProducer
       .fs2MessageProducer(MessageBrokerRequirements.productionSettings)(
         ProducedNotification.print(ProducedNotification.producedNotificationStandardPrintFormat)
-      )("AddGdpTransaction")(messages.toIndexedSeq)
+      )(CountryGrossDomesticProductGlobalRanking.name)(messages.toIndexedSeq)
 
   }
 
