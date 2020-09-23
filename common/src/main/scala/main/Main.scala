@@ -3,8 +3,7 @@ class PEe()
 import cats.effect.{ExitCode, IO, IOApp}
 import cats.syntax.functor._
 import fs2.kafka._
-import pub_sub.algebra.KafkaKeyValue
-
+import pub_sub.algebra.KafkaKeyValueLike.KafkaKeyValue
 import scala.concurrent.duration._
 
 object Main extends IOApp {

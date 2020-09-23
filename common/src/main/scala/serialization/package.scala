@@ -15,7 +15,18 @@ package object serialization {
     } else {
       Json.parse(a).asOpt[A] match {
         case Some(a) => Right(a)
-        case None => Left(SerializationError(s"Failed to decode ${AClass.getName} $a)}"))
+        case None =>
+          Left(
+            new SerializationError(
+              s"""
+              Failed to decode ${AClass.getName}
+              because of:
+              ${Json.parse(a).validate}
+              message that failed was: 
+              $a
+              """
+            )
+          )
       }
     }
   }

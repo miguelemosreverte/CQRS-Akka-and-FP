@@ -1,9 +1,11 @@
 package pub_sub.interpreter
 
 import akka.Done
+
 import scala.concurrent.Future
 import akka.stream.UniqueKillSwitch
-import pub_sub.algebra.{KafkaKeyValue, KafkaKeyValueLike}
+import pub_sub.algebra.KafkaKeyValueLike
+import pub_sub.algebra.KafkaKeyValueLike.KafkaKeyValue
 import pub_sub.algebra.MessageProducer.ProducedNotification
 
 class KafkaMock() {
@@ -31,7 +33,7 @@ class KafkaMock() {
   def produce(data: Seq[KafkaKeyValueLike], topic: String)(handler: ProducedNotification => Unit) = {
     data map { kafkaKeyValue =>
       PubSub.Message(topic, kafkaKeyValue.value)
-    } foreach { receive }
+    } foreach receive
     handler(ProducedNotification(topic, data))
     Future.successful(Done)
   }

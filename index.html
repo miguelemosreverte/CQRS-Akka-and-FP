@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+﻿﻿<!DOCTYPE html>
 <html>
 
 <head>
@@ -60,7 +60,7 @@ Software, someone wiser once said, expands like gas to fill any container, no ma
 <p>That is, if I can be concise about it, my definition for CQRS.</p>
 <p>Now, let’s cut the talk and let’s talk bussiness.</p>
 <h1 id="the-bussiness">2- The Bussiness</h1>
-<p>Our domain is going to be about the GDP of countries. How much they earn yearwise.</p>
+<p>Our country_gdp_ranking.entities.domain is going to be about the GDP of countries. How much they earn yearwise.</p>
 <p>To do this we are going to have:</p>
 <ol>
 <li>Entities
@@ -95,7 +95,7 @@ We can start by modeling Domain Driven Design itself!<br>
 <img src="https://i.imgur.com/9CtoI0E.png" alt="enter image description here"></p>
 <p>2.1.2 Domain services<br>
 We just went through with the DomainDrivenDesign building blocks, now we can use another abstraction proposed by DDD, services.</p>
-<p>Our domain would need a service that given N countries with their GDP, would rank them and take the first ten.</p>
+<p>Our country_gdp_ranking.entities.domain would need a service that given N countries with their GDP, would rank them and take the first ten.</p>
 <p>Let’s apply some TDD.<br>
 <img src="https://i.imgur.com/CdUQihX.png" alt="enter image description here"><br>
 <img src="https://i.imgur.com/qf3n5XQ.png" alt="enter image description here"></p>
@@ -105,7 +105,7 @@ It wants to leave a fingerprint on your codebase and your database.<br>
 But <strong>Command</strong> is, in fact, a <em>suggestion</em>. We could start calling them <strong>Suggestion</strong>, because <em>what is most important about them</em> is that they can be rejected.<br>
 An <strong>Event</strong> is <strong>Command</strong> we did not reject, its consecuence.<br>
 We will persist events, make them the cornerstone of our resilience:<br>
-as with EventSourcing we can recreate the entire state of our application in case of failure. Our system crashes? No problem. Let it crash. We will recover our state, and we will do so by iterating over every event we stored.<br>
+as with EventSourcing we can recreate the entire state of our country_gdp_ranking.application in case of failure. Our system crashes? No problem. Let it crash. We will recover our state, and we will do so by iterating over every event we stored.<br>
 The foundations of our model, the <strong>Event</strong>.<br>
 And a State, given an Event, will change. Simple as that.</p>
 <p>I got a small citation from a great author on this topic.<br>
@@ -122,9 +122,9 @@ and then, what then! It would grow a pair<br>
 of legs and chase you over the street.</p>
 </blockquote>
 <p><img src="https://i.imgur.com/bNk70su.png" alt="enter image description here"><br>
-Our application, implemented:<br>
+Our country_gdp_ranking.application, implemented:<br>
 <img src="https://i.imgur.com/Dz7QlMG.png" alt="enter image description here"></p>
-<h1 id="infrastructure">3. Infrastructure:</h1>
+<h1 id="country_gdp_ranking.infrastructure">3. Infrastructure:</h1>
 <h2 id="actor-model">3.1 Actor Model</h2>
 <p>3.1.1<br>
 <strong>DomainDrivenDesign</strong> and the <strong>Actor Model</strong> just click.</p>
@@ -143,13 +143,13 @@ In order to get us a sharded actor, now our messages would have an <strong>entit
 <p>However, again with the same <em>builder</em>, <em>boilerplate remover by inheritance</em> we did before, we can sort this out and forget about it.<br>
 <img src="https://i.imgur.com/gTV6s8o.png" alt="enter image description here"><br>
 <img src="https://i.imgur.com/ChsTTO2.png" alt="enter image description here"><br>
-All we have to do now is make some tests, see them run green, and start working on the infrastructure components, such as the Kafka consumer which we are going to use.</p>
+All we have to do now is make some tests, see them run green, and start working on the country_gdp_ranking.infrastructure components, such as the Kafka consumer which we are going to use.</p>
 <h2 id="pubsub">3.2 PubSub</h2>
 <p>Okay, now we can venture into one of the last key pieces of an Akka project, the communication layer against the outside world.</p>
 <p>Kafka Transactions provide <strong>exactly-once-delivery</strong> guarantees, which means that not only is Kafka going to try over and over again to send us the messages if the fail to answer, but there is also the guarantee that we are not going to receive the same message twice.</p>
 <p>3.2.1 The algebra<br>
 So we are going to start by making a few reasonable abstractions, such as <strong>MessageProducer</strong> and <strong>MessageProcessor</strong>, which we are going to implement in both Production and Mock environments.</p>
-<p>The idea is to avoid giving <em>too much</em> responsability for what should be a simple infrastructure module.<br>
+<p>The idea is to avoid giving <em>too much</em> responsability for what should be a simple country_gdp_ranking.infrastructure module.<br>
 Thus, we are going to opt for delegating serialization/deserialization to the final user, and offer to publish and read the messages as they come and go over the network. And while it is true that over the network the messages are just array of bytes, there is something familiar about Strings that does not add overhead but makes our code look a little more practical to use.</p>
 <p>3.2.2 The interpreter<br>
 For production we mentioned we are going to use Kafka Transactions.<br>
@@ -199,7 +199,7 @@ Okay then… great! Nothing of value was lost! Because we just have to rollback 
 <h3 id="section-1">3.3.4</h3>
 <p><strong>Avoid Lightbend advice. Use a  battle tested proposal</strong><br>
 Use a purposely made message broker for inter process communication.<br>
-Which by the way, they have gotten better with the years, and now have <strong>exactly once delivery guarantees</strong>, unless you pull the plug. In which case, sure, problems happen, but as we revised just before, we can confront them and say, “You are not going to make my application run like a snail!”</p>
+Which by the way, they have gotten better with the years, and now have <strong>exactly once delivery guarantees</strong>, unless you pull the plug. In which case, sure, problems happen, but as we revised just before, we can confront them and say, “You are not going to make my country_gdp_ranking.application run like a snail!”</p>
 <p>This is the veteran solution, the better solution. Has aged well, be LinkedIn thanked, for it is now not what it was before, as I hope this to be true for all of us. Let time improve our faults. Cheers.</p>
 <p><img src="https://i.imgur.com/Ou6Ka5R.png" alt="enter image description here"><br>
 <em>* who knew Die Verwandlung would be not about a man made croach, but in time, to be that of it’s writer made name of a technological marble, of an octopus of information who its influence would rival in pervasive potential with that of the author works themselves.</em><br>

@@ -1,0 +1,21 @@
+
+# RUN WITH:
+# docker exec -i docker-compose_db_1 bash < setup.psql
+
+
+psql -U admin -d postgres;
+
+DROP TABLE IF EXISTS country_yearly_population_delta;
+CREATE TABLE country_yearly_population_delta (
+  id   SERIAL,
+  countryCode VARCHAR NOT NULL,
+  year INT,
+  yearly_population_delta  INT
+);
+
+DROP TABLE IF EXISTS country_gdp_ranking;
+CREATE TABLE country_gdp_ranking (
+  id   SERIAL,
+  countryCode VARCHAR NOT NULL UNIQUE,
+  rank  SMALLINT
+);

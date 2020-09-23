@@ -2,7 +2,7 @@ package pub_sub.interpreter.alpakka
 
 import akka.Done
 import akka.actor.ActorSystem
-import pub_sub.algebra.KafkaKeyValue
+import pub_sub.algebra.KafkaKeyValueLike.KafkaKeyValue
 import akka.stream.scaladsl.{Keep, Sink}
 import akka.kafka.scaladsl.Transactional
 
@@ -39,43 +39,38 @@ object MessageProcessor {
                 (algorithm(kafkaKeyValue) match {
                   case Left(value) => Future.failed(new Exception(value))
                   case Right(value) => value
-                }).map {
+                }).map { case _: Done =>
+                  val record =
+                    new ProducerRecord(
+                      topicName + "_sink",
+                      committable.record.key,
+                      committable.record.value
+                    )
+                  ProducerMessage.single(
+                    record,
+                    committable.partitionOffset
+                  )
+                }.recoverWith { case exception: Throwable =>
+                  val record =
+                    new ProducerRecord(
+                      topicName + "_retry",
+                      committable.record.key,
+                      committable.record.value
+                    )
+                  Future.successful(
+                    ProducerMessage.single(
+                      record,
+                      committable.partitionOffset
+                    )
+                  )
 
-                    case _: Done =>
-                      val record =
-                        new ProducerRecord(
-                          topicName + "_sink",
-                          committable.record.key,
-                          committable.record.value
-                        )
-                      ProducerMessage.single(
-                        record,
-                        committable.partitionOffset
-                      )
-                  }
-                  .recoverWith {
-                    case exception: Throwable =>
-                      val record =
-                        new ProducerRecord(
-                          topicName + "_retry",
-                          committable.record.key,
-                          committable.record.value
-                        )
-                      Future.successful(
-                        ProducerMessage.single(
-                          record,
-                          committable.partitionOffset
-                        )
-                      )
-
-                  }
+                }
 
               }
               .via(Transactional.flow(producer, transactionalId))
               .viaMat(KillSwitches.single)(Keep.right)
-              .collect {
-                case a: ProducerMessage.Result[_, String, _] =>
-                  a.message.record.value()
+              .collect { case a: ProducerMessage.Result[_, String, _] =>
+                a.message.record.value()
               }
               .toMat(Sink.ignore)(Keep.both)
 

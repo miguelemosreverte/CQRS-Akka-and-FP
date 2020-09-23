@@ -1,0 +1,29 @@
+
+# RUN WITH:
+# docker exec -i docker-compose_db_1 bash < query.psql
+
+
+psql -U admin -d postgres;
+
+  with
+    top2FastestPopulationGrowingCountries as (
+      select countryCode, avg(yearly_population_delta) as averageDelta
+      from country_yearly_population_delta
+      where year between 2010 and 2018
+      group by countryCode
+      order by avg(yearly_population_delta) desc
+      limit 2
+    ),
+    country_gdp_ranking as (
+      select countryCode, rank
+      from country_gdp_ranking
+      order by rank asc
+    )
+  select a.countryCode, a.averageDelta, b.rank
+  from
+  top2FastestPopulationGrowingCountries as a
+  join
+  country_gdp_ranking as b
+  on a.countryCode = b.countryCode
+  ;
+

@@ -14,12 +14,13 @@ import pub_sub.algebra.MessageProducer.ProducedNotification
 
 object MessageProducer {
 
-  val alpakkaMessageProducer
-      : MessageBrokerRequirements => pub_sub.algebra.MessageProducer.MessageProducer[Future[Done]] =
+  val alpakkaMessageProducer: MessageBrokerRequirements => pub_sub.algebra.MessageProducer.MessageProducer[Future[
+    Done
+  ]] =
     transactionRequirements =>
-      data =>
+      handler =>
         topic =>
-          handler => {
+          data => {
             implicit val system: ActorSystem = transactionRequirements.system
             implicit val ec: ExecutionContext = transactionRequirements.executionContext
 

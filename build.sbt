@@ -23,7 +23,7 @@ lazy val global = project
   .enablePlugins(JavaServerAppPackaging, DockerPlugin)
   .aggregate(
     common,
-    it,
+    integration,
     writeside,
     readside
   )
@@ -31,6 +31,7 @@ lazy val global = project
 lazy val globalResources = file("resources")
 
 lazy val common = project
-lazy val it = project
+lazy val domain = project
 lazy val writeside = project
 lazy val readside = project
+lazy val integration = project
