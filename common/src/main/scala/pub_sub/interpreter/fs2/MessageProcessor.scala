@@ -12,7 +12,7 @@ import fs2.kafka.{
   TransactionalProducerRecords,
   TransactionalProducerSettings
 }
-import pub_sub.algebra.KafkaKeyValue
+import pub_sub.algebra.KafkaKeyValueLike.KafkaKeyValue
 import pub_sub.algebra.MessageProcessor.MessageProcessor
 
 import scala.concurrent.duration.DurationInt

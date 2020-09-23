@@ -1,7 +1,7 @@
 import Settings._
 
 lazy val common = ProjectRef(file("./"), "common")
-lazy val writeside = ProjectRef(file("./"), "writeside")
+lazy val domain = ProjectRef(file("./"), "domain")
 
 lazy val readside = project
   .in(file("."))
@@ -19,5 +19,5 @@ lazy val readside = project
   .enablePlugins(JavaServerAppPackaging, DockerPlugin)
   .dependsOn(
     common % "compile->compile;test->test",
-    writeside % "compile->compile;test->test"
+    domain % "compile->compile;test->test"
   )

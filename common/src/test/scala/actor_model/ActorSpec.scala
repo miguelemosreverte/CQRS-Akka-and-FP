@@ -10,6 +10,7 @@ import actor_model.system_parallelizable.{ActorSystemParallelizerBuilder, Availa
 import org.scalatest.concurrent.{Eventually, IntegrationPatience, ScalaFutures}
 import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.time.{Millis, Second, Seconds, Span}
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, RandomTestOrder}
 import serialization.EventSerializer
 import utils.Generators
@@ -29,8 +30,13 @@ abstract class ActorSpec
     with BeforeAndAfterEach
     with Eventually
     with IntegrationPatience
-    with RandomTestOrder
     with ScalaFutures {
+
+  implicit val defaultPatienceConfig: PatienceConfig =
+    PatienceConfig(
+      timeout = scaled(Span(85, Seconds)),
+      interval = scaled(Span(1, Second))
+    )
 
   def parallelActorSystemRunner(testContext: ActorSystem => Unit): Unit =
     ActorSystemParallelizerBuilder.actor

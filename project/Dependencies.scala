@@ -1,3 +1,4 @@
+import Dependencies.Typesafe.FS2.fs2Kafka
 import sbt._
 
 object Dependencies {
@@ -34,7 +35,8 @@ object Dependencies {
 
     private lazy val kafkaVersion = "2.4.0"
     private lazy val embeddedKafkaVersion = kafkaVersion
-    private lazy val embeddedKafka = "io.github.seglo" %% "embedded-kafka" % embeddedKafkaVersion // "io.github.embeddedkafka" %% "embedded-kafka" % embeddedKafkaVersion
+    private lazy val embeddedKafka =
+      "io.github.seglo" %% "embedded-kafka" % embeddedKafkaVersion // "io.github.embeddedkafka" %% "embedded-kafka" % embeddedKafkaVersion
 
     override def modules: Seq[ModuleID] =
       scalaTest :: scalaTic :: scalaCheck :: akkaTestKit :: akkaTypedTestKit :: akkaStreamTestKit :: kafkaTestKit :: embeddedKafka :: Nil
@@ -47,14 +49,36 @@ object Dependencies {
     private lazy val lvlDb = "org.iq80.leveldb" % "leveldb" % lvlDbVersion
     private lazy val lvlDbJni = "org.fusesource.leveldbjni" % "leveldbjni-all" % lvlDbJniVersion
 
+    private lazy val postgresql = "org.postgresql" % "postgresql" % "9.3-1102-jdbc41"
+
     override def modules: Seq[ModuleID] =
-      lvlDb :: lvlDbJni :: Nil
+      lvlDb :: lvlDbJni :: postgresql :: Nil
   }
 
   object Typesafe extends Module {
-    private lazy val fs2Kafka = "com.github.fd4s" %% "fs2-kafka" % "1.0.0"
+
     override def modules: Seq[ModuleID] =
-      Seq(fs2Kafka)
+      FS2.modules ++ Doobie.modules
+
+    object FS2 extends Module {
+      private lazy val fs2Kafka = "com.github.fd4s" %% "fs2-kafka" % "1.0.0"
+      override def modules: Seq[ModuleID] =
+        Seq(fs2Kafka)
+    }
+
+    object Doobie extends Module {
+      override def modules: Seq[sbt.ModuleID] = Seq(
+        // Start with this one
+        "org.tpolecat" %% "doobie-core" % "0.9.0",
+        // And add any of these as needed
+        "org.tpolecat" %% "doobie-h2" % "0.9.0", // H2 driver 1.4.200 + type mappings.
+        "org.tpolecat" %% "doobie-hikari" % "0.9.0", // HikariCP transactor.
+        "org.tpolecat" %% "doobie-postgres" % "0.9.0", // Postgres driver 42.2.12 + type mappings.
+        "org.tpolecat" %% "doobie-quill" % "0.9.0", // Support for Quill 3.5.1
+        "org.tpolecat" %% "doobie-specs2" % "0.9.0" % "test", // Specs2 support for typechecking statements.
+        "org.tpolecat" %% "doobie-scalatest" % "0.9.0" % "test" // ScalaTest support for typechecking statements.
+      )
+    }
   }
 
   object Akka extends Module {
@@ -130,7 +154,8 @@ object Dependencies {
 
     private lazy val logback = "ch.qos.logback" % "logback-classic" % logbackVersion
     private lazy val logbackEncoder = "net.logstash.logback" % "logstash-logback-encoder" % "5.3"
-    private lazy val kryo = "io.altoo" %% "akka-kryo-serialization" % "1.1.0" //"com.twitter" %% "chill-akka" % kryoVersion
+    private lazy val kryo =
+      "io.altoo" %% "akka-kryo-serialization" % "1.1.0" //"com.twitter" %% "chill-akka" % kryoVersion
     private lazy val playJson = "com.typesafe.play" %% "play-json" % "2.8.1"
     private lazy val playJsonExtensions = "ai.x" %% "play-json-extensions" % "0.40.2"
     private lazy val playJsonTraits = "io.leonard" %% "play-json-traits" % "1.5.1"
@@ -154,8 +179,8 @@ object Dependencies {
   }
 
   // Projects
-  lazy val mainDeps
-      : Seq[sbt.ModuleID] = Akka.modules ++ ScalaZ.modules ++ Cassandra.modules ++ Utils.modules ++ Kamon.modules ++ Typesafe.modules
+  lazy val mainDeps: Seq[sbt.ModuleID] =
+    Akka.modules ++ ScalaZ.modules ++ Cassandra.modules ++ Utils.modules ++ Kamon.modules ++ Typesafe.modules
   lazy val testDeps: Seq[sbt.ModuleID] = Test.modules ++ TestDB.modules
 }
 

@@ -85,7 +85,7 @@ spec:
             - name: POD_NAMESPACE
               value: "copernico"
             - name: SERVICE_NAME
-              value: "application-dns-internal"
+              value: "country_gdp_ranking.application-dns-internal"
           ports:
             - name: remoting
               containerPort: 2554

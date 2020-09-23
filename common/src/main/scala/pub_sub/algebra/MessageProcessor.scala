@@ -1,5 +1,7 @@
 package pub_sub.algebra
 
+import pub_sub.algebra.KafkaKeyValueLike.KafkaKeyValue
+
 object MessageProcessor {
 
   type ConsumerGroup = String

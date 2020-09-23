@@ -60,7 +60,7 @@ object EventSerializer {
 
   private lazy val EventSerializersNetworkIdentities = utils.Inference
     .getSubtypesOf[EventSerializer[_]]()
-    .map { _.getName }
+    .map(_.getName)
     .toSeq
     .map { name: String =>
       name -> (name.hashCode + 100)
@@ -92,16 +92,16 @@ object EventSerializer {
       (event, eventSerializer)
     }
 
-    val eventWithSerializer = inference collect {
-        case (eventName, Some(eventSerializer)) => (eventName, eventSerializer)
-      }
+    val eventWithSerializer = inference collect { case (eventName, Some(eventSerializer)) =>
+      (eventName, eventSerializer)
+    }
     val eventWithoutSerializer = inference collect { case (eventName, None) => eventName }
 
     // This will only happen during tests when you initiate the ActorSystem
     // If you don't have any tests and you have not made serializers for your events,
     // then this will happen right at start during the ActorSystem initialization.
-    eventWithoutSerializer foreach (
-        eventName => throw new Exception(s"You forgot to make the ${eventName}FS serializer.")
+    eventWithoutSerializer foreach (eventName =>
+      throw new Exception(s"You forgot to make the ${eventName}FS serializer.")
     )
     // Now we know for sure that we have ALL Events correctly mapped out to EventSerializers.
     // Automation time!
@@ -119,16 +119,14 @@ object EventSerializer {
       actor {
         serializers {
 
-          ${eventWithSerializer.map {
-      case (_, eventSerializer) =>
-        s""" ${name(eventSerializer)} = "${eventSerializer.toString}" """
+          ${eventWithSerializer.map { case (_, eventSerializer) =>
+      s""" ${name(eventSerializer)} = "${eventSerializer.toString}" """
     } map ("         " + _) mkString "\n"}
 
         }
         serialization-bindings {
-      ${eventWithSerializer.map {
-      case (event, eventSerializer) =>
-        s""" "${getClassName(event)}" = ${name(eventSerializer)} """
+      ${eventWithSerializer.map { case (event, eventSerializer) =>
+      s""" "${getClassName(event)}" = ${name(eventSerializer)} """
     } map ("         " + _) mkString "\n"}
         }
       }
@@ -142,9 +140,8 @@ object EventSerializer {
     }
 
   event-adapter-bindings {
-    ${eventWithSerializer map {
-      case (event, _) =>
-        s""" "${getClassName(event)}" = default """
+    ${eventWithSerializer map { case (event, _) =>
+      s""" "${getClassName(event)}" = default """
     } map ("         " + _) mkString "\n"}
   }
   """

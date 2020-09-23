@@ -40,8 +40,10 @@ object Inference {
         val superclass: Class[_] = superclasses
           .map { superclass: Class[_] =>
             (superclass.getCanonicalName.split('.').count { packageName =>
-              subclass.getCanonicalName.contains(packageName)
-            }, superclass)
+               subclass.getCanonicalName.contains(packageName)
+             },
+             superclass
+            )
           }
           .maxBy { a =>
             a._1
@@ -67,7 +69,8 @@ object Inference {
         "serialization",
         "cassandra",
         "marshalling",
-        "proof_of_concept"
+        "country_gdp_ranking",
+        "country_yearly_population_delta"
       )
   ): Set[Class[_]] = {
     def aux[C: ClassTag](packageName: String) = {

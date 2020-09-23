@@ -51,7 +51,7 @@ object Settings extends Dependencies with CommonScalac {
     assemblyJarName in assembly := name.value + ".jar",
     assemblyMergeStrategy in assembly := {
       case PathList("META-INF", xs @ _*) => MergeStrategy.discard
-      case "application.conf" => MergeStrategy.concat
+      case "country_gdp_ranking.application.conf" => MergeStrategy.concat
       case x =>
         val oldStrategy = (assemblyMergeStrategy in assembly).value
         oldStrategy(x)
@@ -59,10 +59,10 @@ object Settings extends Dependencies with CommonScalac {
   )
 
   scalacOptions ++= Seq(
-      "-feature",
-      "-unchecked",
-      "-language:higherKinds",
-      "-language:postfixOps",
-      "-deprecation"
-    ) ++ scalacSettings
+    "-feature",
+    "-unchecked",
+    "-language:higherKinds",
+    "-language:postfixOps",
+    "-deprecation"
+  ) ++ scalacSettings
 }
