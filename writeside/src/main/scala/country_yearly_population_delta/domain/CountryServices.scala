@@ -8,11 +8,12 @@ object CountryServices {
   ): Map[Int, Long] = {
     val year: Int = addedYearlyCountryPopulation.year
     val yearPopulation: Long = addedYearlyCountryPopulation.totalPopulation
-    countryState.populationByYear.get(year - 1) match {
-      case Some(pastYearPopulation: Long) =>
-        val populationDelta = yearPopulation - pastYearPopulation
+    countryState.populationByYear.get(year + 1) match {
+      case Some(nextYearPopulation: Long) =>
+        val populationDelta = nextYearPopulation - yearPopulation
         countryState.populationGrowthByYear + ((year -> populationDelta))
-      case None => countryState.populationGrowthByYear
+      case None =>
+        countryState.populationGrowthByYear
     }
   }
 

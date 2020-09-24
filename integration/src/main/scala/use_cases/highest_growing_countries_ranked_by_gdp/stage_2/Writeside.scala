@@ -23,15 +23,14 @@ object Writeside extends App {
   def startConsumers(
       messageProducer: MessageProducer[Future[Done]]
   )(implicit system: ActorSystem): Seq[UniqueKillSwitch] = {
-
-    val countryActor = country_yearly_population_delta.infrastructure.CountryActor.start(messageProducer)
+    println("START CountryYearlyTotalPopulation consumption")
     val populationActor = country_yearly_population_delta.infrastructure.CountryActor.start(messageProducer)
 
     Seq(
       pub_sub.interpreter.alpakka.PubSub.PubSubAlpakka
         .messageProcessor(messageBrokerRequirements)("default")(
           AddYearlyPopulationGrowthTransaction.topic
-        )(AddYearlyPopulationGrowthTransaction processMessage countryActor)
+        )(AddYearlyPopulationGrowthTransaction processMessage populationActor)
     )
 
   }

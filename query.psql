@@ -12,7 +12,6 @@ psql -U admin -d postgres;
       where year between 2010 and 2018
       group by countryCode
       order by avg(yearly_population_delta) desc
-      limit 2
     ),
     country_gdp_ranking as (
       select countryCode, rank
@@ -25,5 +24,6 @@ psql -U admin -d postgres;
   join
   country_gdp_ranking as b
   on a.countryCode = b.countryCode
+  order by a.averageDelta DESC, b.rank ASC
   ;
 
