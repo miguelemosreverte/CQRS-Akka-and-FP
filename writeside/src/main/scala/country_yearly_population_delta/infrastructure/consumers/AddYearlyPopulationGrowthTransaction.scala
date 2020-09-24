@@ -15,6 +15,7 @@ object AddYearlyPopulationGrowthTransaction {
   val topic = CountryYearlyTotalPopulation.name
 
   def processMessage(actorRef: ActorRef)(input: KafkaKeyValue): Either[Throwable, Future[Done]] = {
+    println("CountryYearlyTotalPopulation received input")
     serialization
       .decode[CountryYearlyTotalPopulation](input.json)
       .map { serialized =>

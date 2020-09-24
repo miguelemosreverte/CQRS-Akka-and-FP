@@ -27,7 +27,12 @@ class CountryActor(messageProducer: MessageProducer[_]) extends BasePersistentAc
         sender() ! akka.Done
 
         import entities.marshalling._
+        println("Trying to publish, maybe cant?")
+        println(s"INFO ABOUT NOT PUBLISHING ${country} ${year} ${state}")
+
         state.populationGrowthByYear.get(year).map { populationGrowth: Long =>
+          println(s"PUBLISHING ${country} ${year} ${populationGrowth}")
+
           messageProducer(MessageProducer.ProducedNotification.Defaults.defaultPrint)(
             CountryYearlyPopulationDelta.name
           )(

@@ -12,9 +12,11 @@ import org.apache.kafka.common.serialization.StringDeserializer
 import fs2.kafka.{AutoOffsetReset, ConsumerSettings, Deserializer}
 import pub_sub.interpreter.fs2.MessageBrokerRequirements.productionSettings
 import entities.{CountryGrossDomesticProductGlobalRanking, CountryYearlyTotalPopulation}
+import projection.CountryYearlyTotalPopulationDeltaProjection.start
+import pub_sub.interpreter.fs2.MessageBrokerRequirements
 import pub_sub.interpreter.fs2.MessageProcessor.{fs2MessageProcessor, AlgorithmOutput, MessageProcessorOutput}
 
-object CountryGrossDomesticProductGlobalRankingProjection {
+object CountryGrossDomesticProductGlobalRankingProjection extends IOApp {
 
   def start(
       readsideMessageProcessor: MessageProcessor[MessageProcessorOutput, AlgorithmOutput]
@@ -37,6 +39,15 @@ object CountryGrossDomesticProductGlobalRankingProjection {
       }
     })
 
+  }
+
+  override def run(args: List[String]): IO[ExitCode] = {
+    val readsideMessageProcessor =
+      pub_sub.interpreter.fs2.MessageProcessor.fs2MessageProcessor(
+        MessageBrokerRequirements.productionSettings
+      )
+    import doobie.Doobie.getTransactor
+    start(readsideMessageProcessor)
   }
 
 }
