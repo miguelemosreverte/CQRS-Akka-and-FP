@@ -1,4 +1,6 @@
 
+# The 'Narrated Version' of the project
+https://miguelemosreverte.github.io/CQRS-Akka-and-FP/
 
 # How to run
 
